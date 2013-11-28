@@ -1,36 +1,35 @@
 from morse.builder import *
-from morse.builder.robots.pr2 import PR2
 
-# A 'naked' PR2 robot to the scene
-james = PR2()
+# PR2 Robot with joints
+james = BasePR2()
+james.add_interface('ros')
 james.translate(x=2.5, y=3.2, z=0.0)
 
-pr2_posture = Sensor('pr2_posture')
-james.append(pr2_posture)
-pr2_posture.configure_mw('ros')
-
-sick = Sensor('sick')
-sick.translate(x=0.275, z=0.252)
-james.append(sick)
-sick.properties(Visible_arc = False)
-sick.properties(laser_range = 30.0)
-sick.properties(resolution = 1.0)
-sick.properties(scan_window = 180.0)
-sick.configure_mw('ros')
+# Laser Scan
+scan = Hokuyo()
+scan.translate(x=0.275, z=0.252)
+james.append(scan)
+scan.properties(Visible_arc = False)
+scan.properties(laser_range = 30.0)
+scan.properties(resolution = 1.0)
+scan.properties(scan_window = 180.0)
+scan.create_laser_arc()
+scan.add_interface('ros', topic='/base_scan')
 
 # An odometry sensor to get odometry information
-odometry = Sensor('odometry')
+odometry = Odometry()
 james.append(odometry)
-odometry.configure_mw('ros')
+odometry.add_interface('ros', topic="/odom")
 
 # Keyboard control
-keyboard = Actuator('keyboard')
-keyboard.name = 'keyboard_control'
+keyboard = Keyboard()
 james.append(keyboard)
 
-motion_controller = Actuator('xy_omega')
-james.append(motion_controller)
-motion_controller.configure_mw('ros')
+# Motion Controller
+motion = MotionXYW()
+james.append(motion)
+motion.add_interface('ros', topic='/cmd_vel')
+
 
 # Set the environment
 env = Environment('tum_kitchen/tum_kitchen')
